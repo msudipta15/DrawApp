@@ -1,28 +1,30 @@
 import express from "express";
 import { Request, Response } from "express";
 import { prismaClient } from "@repo/db/client";
-
+import { SignupSchema, SigninSchema, RoomSchema } from "@repo/common/types";
 const app = express();
 
 app.use(express.json());
 
 app.post("/signup", async function (req: Request, res: Response) {
-  const email = req.body.email;
-  const password = req.body.password;
-  const name = req.body.name;
+  const safeparse = SignupSchema.safeParse(req.body);
 
-  try {
-    const user = await prismaClient.user.create({
-      data: {
-        email,
-        password,
-        name,
-      },
-    });
+  if (safeparse.error) {
+    res.json({ msg: "Invalid Input" });
+  } else {
+    try {
+      const user = await prismaClient.user.create({
+        data: {
+          email: safeparse.data?.email,
+          password: safeparse.data?.password,
+          name: safeparse.data?.name,
+        },
+      });
 
-    res.json({ user_id: user.id });
-  } catch (error) {
-    console.log(error);
+      res.json({ user_id: user.id });
+    } catch (error) {
+      console.log(error);
+    }
   }
 });
 
