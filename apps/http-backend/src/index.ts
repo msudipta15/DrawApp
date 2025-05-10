@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import { Request, Response } from "express";
 import { prismaClient } from "@repo/db/client";
