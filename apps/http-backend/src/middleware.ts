@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/backend-common/token";
 
 export function userAuth(req: Request, res: Response, next: NextFunction) {
-  const token = req.headers.token;
+  const token = req.headers["token"] as String;
   if (!token) {
     res.status(406).json({ msg: "No token found" });
     return;
@@ -22,6 +22,7 @@ export function userAuth(req: Request, res: Response, next: NextFunction) {
 
   try {
     const userid = decoded.user_id;
+    //@ts-ignore
     req.id = userid;
     next();
   } catch (error) {

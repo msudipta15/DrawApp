@@ -9,6 +9,7 @@ import { prismaClient } from "@repo/db/client";
 import { SignupSchema, SigninSchema, RoomSchema } from "@repo/common/types";
 
 import { JWT_SECRET } from "@repo/backend-common/token";
+import { userAuth } from "./middleware";
 
 const app = express();
 
@@ -87,4 +88,29 @@ app.post("/signin", async function (req: Request, res: Response) {
   }
 });
 
+app.post("/room", userAuth, async function (req: Request, res: Response) {
+  //@ts-ignore
+  const admin_id = req.id;
+
+  const parsedata = RoomSchema.safeParse(req.body);
+
+  if (parsedata.error) {
+    res.status(406).json({ msg: "Invalid Input" });
+    return;
+  }
+
+  try {
+    const room = await prismaClient.room.create({
+      data: {
+        slug: parsedata.data?.room_name!,
+        adminId: admin_id,
+      },
+    });
+
+    res.status(200).json({ roomId: room.id });
+  } catch (error) {
+    res.status(200).json({ msg: "Room name already exists" });
+    console.log(error);
+  }
+});
 app.listen(3001);
