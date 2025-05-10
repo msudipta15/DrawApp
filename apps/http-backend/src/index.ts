@@ -2,10 +2,12 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import { prismaClient } from "@repo/db/client";
 import { SignupSchema, SigninSchema, RoomSchema } from "@repo/common/types";
-import jwt from "jsonwebtoken";
+
 import { JWT_SECRET } from "@repo/backend-common/token";
 
 const app = express();
@@ -30,10 +32,12 @@ app.post("/signup", async function (req: Request, res: Response) {
   }
 
   try {
+    const hashpassword = await bcrypt.hash(safeparse.data.password, 10);
+
     const user = await prismaClient.user.create({
       data: {
         email: safeparse.data?.email,
-        password: safeparse.data?.password,
+        password: hashpassword,
         name: safeparse.data?.name,
       },
     });
@@ -64,7 +68,12 @@ app.post("/signin", async function (req: Request, res: Response) {
     return;
   }
 
-  if (user.password !== safeparse.data.password) {
+  const hashpassword = await bcrypt.compare(
+    safeparse.data.password,
+    user.password
+  );
+
+  if (!hashpassword) {
     res.status(406).json({ msg: "Incorrect Password" });
     return;
   }
