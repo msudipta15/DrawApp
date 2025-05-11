@@ -3,6 +3,5 @@
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist"
-  },
-  "include": ["express.d.ts", "src"]
+  }
 }

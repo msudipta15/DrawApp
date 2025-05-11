@@ -103,7 +103,7 @@ app.post("/room", userAuth, async function (req: Request, res: Response) {
     const room = await prismaClient.room.create({
       data: {
         slug: parsedata.data?.room_name!,
-        adminId: admin_id,
+        adminId: admin_id!,
       },
     });
 
