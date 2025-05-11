@@ -63,7 +63,48 @@ wss.on("connection", function connection(ws, request) {
     ws,
   });
 
-  ws.on("message", function message(data) {});
+  ws.on("message", async function message(data) {
+    let parsedata;
+    if (typeof data !== "string") {
+      parsedata = JSON.parse(data.toString());
+    } else {
+      parsedata = JSON.parse(data);
+    }
+
+    if (parsedata.type === "join-room") {
+      const user = users.find((x) => x.ws === ws);
+      if (!user) {
+        return;
+      }
+
+      user.rooms = user.rooms.filter((x) => x === parsedata.room);
+    }
+
+    if (parsedata.type === "chat") {
+      const roomid = parsedata.roomid;
+      const message = parsedata.message;
+
+      await prismaClient.chat.create({
+        data: {
+          userId: userid,
+          roomId: Number(roomid),
+          message: message,
+        },
+      });
+
+      users.forEach((user) => {
+        if (user.rooms.includes(roomid)) {
+          user.ws.send(
+            JSON.stringify({
+              type: "chat",
+              message: message,
+              roomid,
+            })
+          );
+        }
+      });
+    }
+  });
 
   ws.send("something");
 });
