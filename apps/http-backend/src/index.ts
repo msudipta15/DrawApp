@@ -113,4 +113,20 @@ app.post("/room", userAuth, async function (req: Request, res: Response) {
     console.log(error);
   }
 });
+
+app.get("/room/:slug", async function (req: Request, res: Response) {
+  const slug = req.params.slug;
+  const room = await prismaClient.room.findFirst({
+    where: { slug },
+  });
+
+  if (!room) {
+    res.status(402).json({ msg: "No room found" });
+    return;
+  }
+
+  res.json({
+    room,
+  });
+});
 app.listen(3001);
